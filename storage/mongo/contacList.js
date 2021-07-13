@@ -11,14 +11,9 @@ let contacStorage = {
     },
 
     update: async(id, data) => {
-        const { value, error } = await validate(data);
-
-        if (error) {
-            throw new Error(error.message);
-        }
 
         try {
-            const contac = await Contac.findOne({ _id: id });
+            const contac = await Contac.findByIdAndUpdate({ _id: id });
             if (!contac) {
                 throw new Error("Not found in database");
             }
@@ -33,17 +28,17 @@ let contacStorage = {
         }
     },
 
-    get: async(query) => {
+    get: async(id) => {
         try {
-            let contac = await Contac.findOne({...query });
+            let contac = await Contac.findOne({ id: id });
             return contac
         } catch (error) {
             throw new Error(error.message)
         }
     },
-    delete: async(query) => {
+    delete: async(id, data) => {
         try {
-            let contact = await Contac.findOneAndDelete({...query });
+            let contact = await Contac.findByIdAndDelete({ _id: id });
             if (!contact) {
                 throw new Error("Not found in database");
             }

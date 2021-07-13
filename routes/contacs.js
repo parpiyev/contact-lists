@@ -3,7 +3,7 @@ const router = express.Router();
 const contacStorage = require('../storage/mongo/contacList');
 const multer = require('multer');
 const path = require('path');
-const { validate } = require('../models/contac-list');
+const { validate } = require('../validatetion/validate');
 
 
 // contaclarni barchsini ko'rish uchun 
@@ -47,19 +47,20 @@ const upload = multer({
 // yangi contac qoshish
 router.post('/create', upload.array('images', 10), async(req, res) => {
     try {
-        const { error } = await validate(req.body);
 
+        const { error } = await validate(req.body);
         if (error) {
             throw new Error(error.message);
         }
-        const { firstName, lastName, description, phone } = req.body
+
+
         let photos = []
 
         for (let photo of req.files) {
             photos.push(`/api/file/${photo.filename}`)
         }
-        let user = await contacStorage.get({ phone: req.body.phone })
-        if (user) throw new Error('User already exist')
+
+        const { firstName, lastName, description, phone } = req.body
         await contacStorage.create({
             fullName: {
                 firstName,
@@ -81,7 +82,7 @@ router.post('/create', upload.array('images', 10), async(req, res) => {
 // bitta contacni idsi boyicha olish
 router.get('/:id', async(req, res) => {
     try {
-        const contac = await contacStorage.get({ phone: req.params.id });
+        const contac = await contacStorage.get({ _id: req.params.id });
         return res.json({ success: true, contac });
     } catch (e) {
         return res.status(500).json({ success: false, message: e.message });
@@ -91,10 +92,18 @@ router.get('/:id', async(req, res) => {
 // contacni name ozgartirish 
 router.patch('/update/:id', async(req, res) => {
     try {
+
+        const { error } = await validate(req.body);
+        if (error) {
+            throw new Error(error.message);
+        }
+
         await contacStorage.update(req.params.id, { fullName: { firstName: req.body.firstName, lastName: req.body.lastName }, phone: req.body.phone }, {
             new: true
         });
+
         return res.status(200).json({ success: true, message: "Contac updated" });
+
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

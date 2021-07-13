@@ -1,4 +1,3 @@
-const Joi = require('joi');
 const mongoose = require('mongoose');
 
 const contacSchema = mongoose.Schema({
@@ -16,7 +15,7 @@ const contacSchema = mongoose.Schema({
         required: true,
         unique: true
     },
-    descripton: {
+    description: {
         type: String
     },
     photo: {
@@ -26,16 +25,4 @@ const contacSchema = mongoose.Schema({
 
 const Contac = mongoose.model('Contac', contacSchema);
 
-async function validateContac(contac) {
-    const schema = Joi.object({
-        firstName: Joi.string().required(),
-        lastName: Joi.string(),
-        phone: Joi.number().required(),
-        descripton: Joi.string(),
-        photo: Joi.array()
-    });
-    return await schema.validateAsync(contac);
-}
-
 exports.Contac = Contac;
-exports.validate = validateContac;
