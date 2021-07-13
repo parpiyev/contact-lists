@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const contacStorage = require('../../storage/mongo/contacList');
+const contacStorage = require('../storage/mongo/contacList');
 const multer = require('multer');
 const path = require('path');
-const { response } = require('express');
+const { validate } = require('../models/contac-list');
+
 
 // contaclarni barchsini ko'rish uchun 
 router.get('/', async(req, res) => {
     try {
-        const response = await contacStorage.getAll().sort('name');
+        const response = await contacStorage.getAll()
         return res.status(200).json({ response });
     } catch (error) {
         return res.status(500).send({ error: error.message });
@@ -16,41 +17,58 @@ router.get('/', async(req, res) => {
 });
 
 // // rasmdi qaysi faylga saqlashligi
-// const storage = multer.diskStorage({
-//     destination: function(req, file, cb) {
-//         cb(null, path.join(__dirname, '../', 'uploads'));
-//     },
-//     filename: function(req, file, cb) {
-//         cb(null, `${file.fieldname}-${Date.now()}.png`);
-//     }
-// });
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, path.join(__dirname, '../', 'uploads'));
+    },
+    filename: function(req, file, cb) {
+        cb(null, `${file.fieldname}-${Date.now()}.png`);
+    }
+});
 
-// // foydalanuvchi rasm yubor yatganini tekshirish
-// const fileFilter = (req, file, cb) => {
-//     if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-//         cb(null, true);
-//     } else {
-//         cb(null, false);
-//     }
-// };
+// foydalanuvchi rasm yubor yatganini tekshirish
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+};
 
-// // rasm olchami
-// const upload = multer({
-//     storage: storage,
-//     limits: {
-//         fileSize: 1024 * 1024 * 5
-//     },
-//     fileFilter: fileFilter
-// });
+// rasm olchami
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 1024 * 1024 * 5
+    },
+    fileFilter: fileFilter
+});
 
 // yangi contac qoshish
-router.post('/creat', upload.single('image'), async(req, res) => {
+router.post('/create', upload.array('images', 10), async(req, res) => {
     try {
-        // let user = await contacStorage.findOne({ phone: req.body })
-        // if (user) throw new Error('User already exist')
+        const { error } = await validate(req.body);
 
-        await contacStorage.create(req.body);
-        console.log(req.body);
+        if (error) {
+            throw new Error(error.message);
+        }
+        const { firstName, lastName, description, phone } = req.body
+        let photos = []
+
+        for (let photo of req.files) {
+            photos.push(`/api/file/${photo.filename}`)
+        }
+        let user = await contacStorage.get({ phone: req.body.phone })
+        if (user) throw new Error('User already exist')
+        await contacStorage.create({
+            fullName: {
+                firstName,
+                lastName
+            },
+            description,
+            photo: photos,
+            phone
+        });
         return res.status(201).json({ success: true, message: "Contac created" });
     } catch (error) {
         res.status(500).json({
@@ -63,7 +81,7 @@ router.post('/creat', upload.single('image'), async(req, res) => {
 // bitta contacni idsi boyicha olish
 router.get('/:id', async(req, res) => {
     try {
-        const contac = await contacStorage.get(req.params.id);
+        const contac = await contacStorage.get({ phone: req.params.id });
         return res.json({ success: true, contac });
     } catch (e) {
         return res.status(500).json({ success: false, message: e.message });

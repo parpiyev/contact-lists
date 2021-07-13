@@ -1,18 +1,11 @@
-const { Contac, validate } = require('../../Contac-list/models/contac-list');
+const { Contac, validate } = require('../../models/contac-list');
 
 let contacStorage = {
     create: async(data) => {
-        console.log(data);
-        const { value, error } = await validate(data);
-
-        if (error) {
-            throw new Error(error.message);
-        }
-
         try {
-            const contac = new Contac(data);
-            const res = await contac.save();
+            return await Contac.create({...data });
         } catch (error) {
+            console.log(error)
             throw new Error(error.message);
         }
     },
@@ -40,23 +33,17 @@ let contacStorage = {
         }
     },
 
-    get: async(id) => {
+    get: async(query) => {
         try {
-            let contac = await Contac.findOne({ _id: id });
-
-            if (!contac) {
-                throw new Error("Not found in database");
-            }
-
+            let contac = await Contac.findOne({...query });
             return contac
         } catch (error) {
             throw new Error(error.message)
         }
     },
-
-    delete: async(id) => {
+    delete: async(query) => {
         try {
-            let contact = await Contac.findOneAndDelete({ _id: id });
+            let contact = await Contac.findOneAndDelete({...query });
             if (!contact) {
                 throw new Error("Not found in database");
             }

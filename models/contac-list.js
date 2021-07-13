@@ -20,7 +20,7 @@ const contacSchema = mongoose.Schema({
         type: String
     },
     photo: {
-        type: String
+        type: Array
     }
 });
 
@@ -32,7 +32,7 @@ async function validateContac(contac) {
         lastName: Joi.string(),
         phone: Joi.number().required(),
         descripton: Joi.string(),
-        photo: Joi.string()
+        photo: Joi.array()
     });
     return await schema.validateAsync(contac);
 }
