@@ -1,26 +1,25 @@
-const { Contac, validate } = require('../../models/contac-list');
+const { Contac, validate } = require("../../models/contac-list");
 
 let contacStorage = {
     create: async(data) => {
         try {
             return await Contac.create({...data });
         } catch (error) {
-            console.log(error)
+            console.log(error);
             throw new Error(error.message);
         }
     },
 
     update: async(id, data) => {
-
         try {
-            const contac = await Contac.findByIdAndUpdate({ _id: id });
+            const contac = await Contac.findByIdAndUpdate({ _id: id }, {...data }, {
+                new: true,
+            });
             if (!contac) {
                 throw new Error("Not found in database");
             }
 
-            contac.fullName = data.fullName;
-            contac.phone = data.phone;
-            const res = await contac.save()
+            const res = await contac.save();
 
             return res.id;
         } catch (error) {
@@ -30,10 +29,10 @@ let contacStorage = {
 
     get: async(id) => {
         try {
-            let contac = await Contac.findOne({ id: id });
-            return contac
+            let contac = await Contac.findOne({ _id: id });
+            return contac;
         } catch (error) {
-            throw new Error(error.message)
+            throw new Error(error.message);
         }
     },
     delete: async(id, data) => {
