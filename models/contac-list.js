@@ -19,6 +19,9 @@ const contacSchema = mongoose.Schema({
     photo: {
         type: Array,
     },
+    image: {
+        type: Array,
+    },
 });
 
 const Contac = mongoose.model("Contac", contacSchema);
