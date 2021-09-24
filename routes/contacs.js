@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const router = require("express").Router();
-const { img, imgDelete } = require("./function");
+const { img, imgDelete, main } = require("./function");
 const { images } = require("./imgStorage");
 const { validate } = require("../validatetion/validate");
 const contacStorage = require("../storage/mongo/contacList");
@@ -9,7 +9,6 @@ const contacStorage = require("../storage/mongo/contacList");
 router.get("/", async (req, res) => {
   try {
     const response = await contacStorage.getAll();
-
     return res.status(200).json({ response });
   } catch (error) {
     return res.status(500).send({ error: error.message });
@@ -30,12 +29,14 @@ router.post("/create", images, async (req, res) => {
   try {
     const { error } = await validate(req.body);
     if (error) throw new Error(error.message);
+    main()
 
     let photos = [];
     let images = [];
     let fileArr = Object.values(req.files);
     for (const iterator of fileArr) {
       for (const value of iterator) {
+        console.log(value.size * 1024)
         if (value.fieldname == "photo")
           photos.push(`/api/file/${value.filename}`);
         else images.push(`/api/file/${value.filename}`);

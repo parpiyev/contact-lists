@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "clamscan": "^2.0.1",
+    "cloudmersive-virus-api-client": "^1.2.2",
     "express": "^4.17.1",
     "joi": "^17.4.0",
     "mongoose": "^5.13.1",
